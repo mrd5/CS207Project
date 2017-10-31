@@ -16,5 +16,46 @@
 
 //VARIABLES
 
+//potentiometer and button pins
+const int wheel_one = 0;
+const int wheel_one = 1;
+const int button_one = 2;
+const int button_two = 3;
+
+//these will draw the game on the TV
+int in_game1 = 0; 
+int in_game2 = 0;
+
+//modes
+int menu = 1;
+int gameOver = 2;
+
+//paddles
+int paddleHeight = 14;
+int paddleWidth = 1;
+#define rightPaddle (TV.hres-4)
+#define leftPaddle 2
+
+//scores
+#define leftScore (TV.hres()/2-15)
+#define rightScore (TV.hres()/2+10)
+#define scoreY 4
+
+//other. These are constants in Bruce's code -- I initialize to 0 and the users will choose the values
+int velocity = 0;
+int playTo = 0;
+
+#define left 0
+#define right 1
+
+TVout TV; //create a TVout object called TV
+unsigned char a,b;
+
+bool button1 = false;
+bool button2 = false;
+
+//////////////
+
+
 
 	
