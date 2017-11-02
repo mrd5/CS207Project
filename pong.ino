@@ -56,6 +56,31 @@ bool button2 = false;
 
 //////////////
 
+int potentiometerPos = 0;
+int potentiometer2Pos = 0;
 
+int leftPaddleHeight = 0;
+int rightPaddleHeight = 0;
 
+signed char ballXpos, ballYpos;
+ballXpos = 0; ballYpos = 0;
+
+char ballHoriVelo = 0;
+char ballVertVelo = 0;
+
+int frame = 0;
+int mode = menu;
+
+void HumanInputs()
+{
+	//Gets potentiometer values
+	potentimeterPos = analogRead(wheel_one);
+	potentiometer2Pos = analogRead(wheel_two);
 	
+	//Gets the pushbutton values
+	button1 = digitalRead(button_one);
+	button2 = digitalRead(button_two);
+	
+
+}
+	    
