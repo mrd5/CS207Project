@@ -83,4 +83,21 @@ void HumanInputs()
 	
 
 }
+
+void drawMenu()
+{
+
+}
+void drawTheGame()
+{
+
+}
+
+void score(byte Player)
+{
+	
+}
+
+
+
 	    
