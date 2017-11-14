@@ -98,6 +98,16 @@ void score(byte Player)
 	
 }
 
+void setSpeed()
+{
+  while (digitalRead(BUTTON_ONE_PIN) == LOW){
+    if (digitalRead(BUTTON_TWO_PIN) == HIGH){
+      iSpeed--; //iSpeed set to some high value, and the lower it gets the faster the pong ball moves.
+      delay(100);
+    }
+  }
+}
+
 
 
 	    
