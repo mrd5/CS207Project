@@ -231,3 +231,41 @@ void setScore()
 }
 
 	    
+
+
+
+
+void setup()  {
+  Serial.begin(9600);
+  x=0;
+  y=0;
+  TV.begin(_NTSC);   //For north american televisions
+ 
+  ballX = TV.hres() / 2; //ball starts in the middle of the screen
+  ballY = TV.vres() / 2;
+
+
+  Serial.println("Choose your game speed\n"); 
+  setSpeed();//User chooses speed with this function
+  delay(1000);
+  Serial.println("Choose the score you want to play to\n");
+  setScore();//User sets play-to score with this function
+  delay(1000);
+
+  if (iSpeed <= 0){ //If iSpeed is decremented to low, it is set to 1, which is the fastest speed.
+    iSpeed = 1;
+    Serial.print("New speed: ");//Used these two lines just to make sure it was working properly.
+    Serial.println(iSpeed);
+    delay(1000);
+  }
+}
+
+
+
+
+
+
+
+
+
+
