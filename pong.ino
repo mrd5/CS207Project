@@ -260,7 +260,10 @@ void setup()  {
   }
 }
 
-
+void loop()
+{
+	processInputs();	
+}
 
 
 
