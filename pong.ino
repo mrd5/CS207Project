@@ -262,7 +262,16 @@ void setup()  {
 
 void loop()
 {
-	processInputs();	
+   processInputs();	
+	
+   if(state == IN_MENU) { //Draws the menu 
+      Serial.println("F"); //To show you're in the menu
+      drawMenu();
+  }
+
+    if(state == IN_GAMEA) { //Draws the game box at the start of the game
+    drawBox();
+  }
 }
 
 
