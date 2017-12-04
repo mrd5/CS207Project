@@ -1,110 +1,171 @@
-/*
- * Pong game on the Arduino
- * Based on James Bruce's version found here: 
- * http://www.makeuseof.com/tag/how-to-recreate-the-classic-pong-game-using-arduino/
- * enhanced, by Mathew Dorish
- * Uses wither photoresistors or temperature sensors as controllers! 
- * Plays on a TV.
+/********
+ * Arduino Pong
+ * By Pete Lamonica
+ *  modified by duboisvb
+ *  updated by James Bruce (http://www.makeuseof.com/tag/author/jbruce
+ * A simple implementation of Pong on the Arduino using a TV for output.
+ *
  */
-
-//Required arduino libraries
+ 
+ 
 #include <TVout.h>
-//Download TVout here: https://code.google.com/archive/p/arduino-tvout/downloads
-//Download the TVoutBeta1.zip and extract it. Place the three folders in it in your Arduino libraries folder. 
 #include <fontALL.h>
-//fontALL.h is included in the above download
 
-//VARIABLES
-
-//potentiometer and button pins
-const int WHEEL_ONE_PIN = 0;
-const int WHEEL_TWO_PIN = 1;
-const int BUTTON_ONE_PIN = 2;
-const int BUTTON_TWO_PIN = 3;
-
-//these will draw the game on the TV
-int IN_GAMEA = 0; 
-int IN_GAMEB = 0;
-
-//modes
-int IN_MENU = 1;
-int GAME_OVER = 2;
-
-//paddles
-const int PADDLE_HEIGHT = 14;
-const int PADDLE_WIDTH = 1;
-#define RIGHT_PADDLE_X (TV.hres-4)
+#define WHEEL_ONE_PIN 0 //analog
+#define WHEEL_TWO_PIN 1 //analog
+#define BUTTON_ONE_PIN 2 //digital to start game
+#define BUTTON_TWO_PIN 3 //digital to reset and go back to main menu
+ 
+#define PADDLE_HEIGHT 14
+#define PADDLE_WIDTH 1
+ 
+#define RIGHT_PADDLE_X (TV.hres()-4)
 #define LEFT_PADDLE_X 2
+ 
+#define IN_GAMEA 0 //in game state - draw constants of the game box
+#define IN_GAMEB 0 //in game state - draw the dynamic part of the game
 
-//scores
+#define IN_MENU 1 //in menu state
+#define GAME_OVER 2 //game over state
+ 
 #define LEFT_SCORE_X (TV.hres()/2-15)
 #define RIGHT_SCORE_X (TV.hres()/2+10)
-int SCORE_Y =  4;
-
-//other. These are constants in Bruce's code -- I initialize to 0 and the users will choose the values
-int PLAY_TO = 3;
-
+#define SCORE_Y 4
+ 
+#define MAX_Y_VELOCITY 6
+//#define PLAY_TO 1
+int PLAY_TO = 100;
 
 #define LEFT 0
 #define RIGHT 1
-
-TVout TV; //create a TVout object called TV
+ 
+TVout TV;
 unsigned char x,y;
 
-bool button1Status = false;
-bool button2Status = false;
+boolean button1Status = false;
+// boolean button2Status = false;
 
-//////////////
-
-int sensorPos = 0;
-int sensor2Pos = 0;
-
-int leftPaddleHeight = 0;
-int rightPaddleHeight = 0;
-
-signed char ballX = 0;
-signed char ballY = 0;
-
+int wheelOnePosition = 0;
+int wheelTwoPosition = 0;
+int rightPaddleY = 0;
+int leftPaddleY = 0;
+unsigned char ballX = 0;
+unsigned char ballY = 0;
 char ballVolX = 2;
 char ballVolY = 2;
-
+ 
 int leftPlayerScore = 0;
 int rightPlayerScore = 0;
-
+ 
 int frame = 0;
 int state = IN_MENU;
-int iSpeed = 10;
+int counter = 0;
+int iSpeed = 8;
 
-//This function gets the values of the sensors and buttons, which will be used to move 
-//the paddles on screen. Also checks if it's a gameover. 
-void HumanInputs()
-{
-	//sensorPos = analogRead(WHEEL_ONE_PIN);
-	sensorPos = (analogRead(A0)) * (512/5) - 15360; // for temperature sensor
-	
-	//sensor2Pos = analogRead(WHEEL_TWO_PIN);
-	if (leftPaddlyY <= ballY){
-		sensor2Pos += 15;
-	}else{
-		sensor2Pos -= 15;
-	}
-	
-	button1Status = digitalRead(BUTTON_ONE_PIN);
-	
-	if (state == GAME_OVER){
-		Serial.println("Game over! Restarting...");
-		drawMenu();
-	}
+void processInputs() {
+  //wheelOnePosition = analogRead(WHEEL_ONE_PIN);
+//  wheelOnePosition = analogRead(A1) * 5 - 3635; //Photoresistor
+    wheelOnePosition = analogRead(A0) * 102 - 14800; //temp sensor
+
+  if ( wheelOnePosition < 0)
+    wheelOnePosition = 50;
+  if (wheelOnePosition > 1000)
+    wheelOnePosition = 1000;
+  //delay(50);
+ // wheelTwoPosition = analogRead(WHEEL_TWO_PIN);
+ 
+  
+  if (leftPaddleY <= ballY){
+    wheelTwoPosition += 15;
+  }
+  else{
+    wheelTwoPosition -= 15;
+  }
+
+  //delay(50);
+   button1Status = (digitalRead(BUTTON_ONE_PIN));
+  
+ //  button2Status = (digitalRead(BUTTON_TWO_PIN) == LOW);
+   if ((button1Status == 0)&& (state == GAME_OVER))
+   {
+     Serial.println("game over, drawing menu");
+     drawMenu ();
+   }
+  
+ 
+   delay(50);
+  //Serial.println(button1Status);
+  //Serial.println(state);
+  //Serial.println(button2Status);
+  //Serial.println(wheelOnePosition);
+   //Serial.println(wheelTwoPosition);
+ 
+
 }
-
-/*
-This is the code found on Bruce's website. I do not claim responsibility for this code.
-I might try to recreate it before the project is due, but it is pretty complicated. 
-*/
-
-void drawMenu()
-//This function draws the menu at the start of the game
-{
+ 
+void drawGameScreen() {
+ //  TV.clear_screen();
+  //draw right paddle
+  rightPaddleY = ((wheelOnePosition /8) * (TV.vres()-PADDLE_HEIGHT))/ 128;
+  x = RIGHT_PADDLE_X;
+  for(int i=0; i<PADDLE_WIDTH; i++) {
+    TV.draw_line(x+i,rightPaddleY,x+i,rightPaddleY+PADDLE_HEIGHT,1);
+  }
+ 
+  //draw left paddle
+  leftPaddleY = ((wheelTwoPosition /8) * (TV.vres()-PADDLE_HEIGHT))/ 128;
+  x = LEFT_PADDLE_X;
+  for(int i=0; i<PADDLE_WIDTH; i++) {
+    TV.draw_line(x+i,leftPaddleY,x+i,leftPaddleY+PADDLE_HEIGHT,1);
+  }
+ 
+  //draw score
+  TV.print_char(LEFT_SCORE_X,SCORE_Y,'0'+leftPlayerScore);
+  TV.print_char(RIGHT_SCORE_X,SCORE_Y,'0'+rightPlayerScore);
+ 
+  
+  
+ 
+ 
+  
+  //draw ball
+  TV.set_pixel(ballX, ballY, 2);
+}
+ 
+//player == LEFT or RIGHT
+void playerScored(byte player) {
+  if(player == LEFT) leftPlayerScore++;
+  if(player == RIGHT) rightPlayerScore++;
+ 
+  //check for win
+  if(leftPlayerScore == PLAY_TO || rightPlayerScore == PLAY_TO) {
+    state = GAME_OVER;
+  }
+ 
+  ballVolX = -ballVolX;
+}
+ 
+ 
+ 
+ void drawBox() {
+      TV.clear_screen();
+      
+   //draw net
+  for(int i=1; i<TV.vres() - 4; i+=6) {
+    TV.draw_line(TV.hres()/2,i,TV.hres()/2,i+3,1);
+  }
+  // had to make box a bit smaller to fit tv 
+    TV.draw_line(0, 0, 0,95,1 );  // left
+   TV.draw_line(0, 0, 126,0,1 ); // top
+    TV.draw_line(126, 0, 126,95,1 ); // right
+     TV.draw_line(0, 95, 126,95,1 ); // bottom
+  
+  
+  state = IN_GAMEB;
+}
+ 
+ 
+void drawMenu() {
   x = 0;
   y = 0;
   char volX =3;
@@ -115,14 +176,13 @@ void drawMenu()
   TV.select_font(font4x6);
   TV.print(22, 35, "Press Button");
   TV.print(30, 45, "To Start");
-  //The above lines print the words on screen
+  
   
   delay(1000);
-  while(!button1Status) {//The game starts when button 1 is pushed
+  while(!button1Status) {
     Serial.println("menu");
   Serial.println(button1Status);
   
-    //While the game is in menu, a ball is drawn on screen and moves around the menu
     processInputs();
     TV.delay_frame(3);
     if(x + volX < 1 || x + volX > TV.hres() - 1) volX = -volX;
@@ -153,60 +213,9 @@ void drawMenu()
   state = IN_GAMEA;
 }
 
-//I do not claim responsibility for this code either. I don't think I will attempt to
-//recreate this function on my own, as it seems incredibly complicated for me.
-void drawGameScreen()
-{
- //  TV.clear_screen();
-  //draw right paddle
-  rightPaddleY = ((wheelOnePosition /8) * (TV.vres()-PADDLE_HEIGHT))/ 128;
-  x = RIGHT_PADDLE_X;
-  for(int i=0; i<PADDLE_WIDTH; i++) {
-    TV.draw_line(x+i,rightPaddleY,x+i,rightPaddleY+PADDLE_HEIGHT,1);
-  }
- 
-  //draw left paddle
-  leftPaddleY = ((wheelTwoPosition /8) * (TV.vres()-PADDLE_HEIGHT))/ 128;
-  x = LEFT_PADDLE_X;
-  for(int i=0; i<PADDLE_WIDTH; i++) {
-    TV.draw_line(x+i,leftPaddleY,x+i,leftPaddleY+PADDLE_HEIGHT,1);
-  }
- 
-  //draw score
-  TV.print_char(LEFT_SCORE_X,SCORE_Y,'0'+leftPlayerScore);
-  TV.print_char(RIGHT_SCORE_X,SCORE_Y,'0'+rightPlayerScore);
- 
-  
-  
- 
- 
-  
-  //draw ball
-  TV.set_pixel(ballX, ballY, 2);
-}
-
-void score(byte Player)
-{
-	
-}
-
 void setSpeed()
 {
-  while (digitalRead(BUTTON_ONE_PIN) == LOW){
-    if (digitalRead(BUTTON_TWO_PIN) == HIGH){
-      iSpeed--; //iSpeed set to some high value, and the lower it gets the faster the pong ball moves.
-      delay(100);
-    }
-  }
-}
-
-//setSpeed is my own function. It lets the user choose the speed they would like to play to.
-//While button 1 is not pushed, if button 2 is pushed, it decreases iSpeed
-//iSpeed is an integer where the game updates on every iSpeed'th frame.
-//Hence a lower iSpeed means the game updates more frequently, and plays faster,
-//which is why iSpeed gets decreased instead of increased as you might think. 
-void setSpeed()
-{
+  //Serial.println("Choose the speed of the ball. Lower = faster\n");
   while (digitalRead(BUTTON_ONE_PIN) == LOW){
     if (digitalRead(BUTTON_TWO_PIN) == HIGH){
       iSpeed--;
@@ -216,68 +225,137 @@ void setSpeed()
   }
 }
 
-//setScore is also a function I created. It functions very similar to setSpeed,
-//where while button 1 is UP (not pushed), if you push button 2, the score you
-//play to gets incremented by 1. 
 void setScore()
 {
+  //Serial.println("Choose the score you want to play to\n");
   while (digitalRead(BUTTON_ONE_PIN) == LOW){
     if (digitalRead(BUTTON_TWO_PIN) == HIGH){
-      PLAY_TO += 1;
+      PLAY_TO = PLAY_TO + 1;
       Serial.println(PLAY_TO);
     }
     delay(1000);
   }
 }
 
-	    
-
-
-
-
+int count;
 void setup()  {
-  Serial.begin(9600);
+    //Serial.begin(9600);
   x=0;
   y=0;
-  TV.begin(_NTSC);   //For north american televisions
+  TV.begin(_NTSC);       //for devices with only 1k sram(m168) use TV.begin(_NTSC,128,56)
  
-  ballX = TV.hres() / 2; //ball starts in the middle of the screen
+  ballX = TV.hres() / 2;
   ballY = TV.vres() / 2;
+  Serial.begin(9600);
+  count = 0;
+//  pinMode(BUTTON_ONE_PIN, INPUT);      // sets the digital pin as output
 
-
-  Serial.println("Choose your game speed\n"); 
-  setSpeed();//User chooses speed with this function
+  //Serial.println("Choose your game speed\n");
+  setSpeed();
   delay(1000);
-  Serial.println("Choose the score you want to play to\n");
-  setScore();//User sets play-to score with this function
-  delay(1000);
+  //Serial.println("Choose the score you want to play to\n");
+  setScore();
+  //delay(1000);
 
-  if (iSpeed <= 0){ //If iSpeed is decremented to low, it is set to 1, which is the fastest speed.
+  if (iSpeed <= 0){
     iSpeed = 1;
-    Serial.print("New speed: ");//Used these two lines just to make sure it was working properly.
+    Serial.print("New speed: ");
     Serial.println(iSpeed);
-    delay(1000);
+    delay(10000);
   }
+
 }
 
-void loop()
-{
-   processInputs();	
-	
-   if(state == IN_MENU) { //Draws the menu 
-      Serial.println("F"); //To show you're in the menu
-      drawMenu();
+void loop() {
+
+
+  
+  processInputs();
+
+
+  
+  if(state == IN_MENU) {
+    Serial.println("F");
+    drawMenu();
   }
 
-    if(state == IN_GAMEA) { //Draws the game box at the start of the game
+ if(state == IN_GAMEA) {
+  //Serial.println("gamA");
+  //Serial.println(button1Status);
+  
     drawBox();
   }
+ 
+  if(state == IN_GAMEB) {
+    if(frame % iSpeed == 0) { //every iSpeed frame the game updates by moving ball position
+      ballX += ballVolX;
+      ballY += ballVolY;
+ 
+ // change if hit top or bottom
+      if(ballY <= 1 || ballY >= TV.vres()-1)
+     { ballVolY = -ballVolY;
+                 delay(100);
+  TV.tone( 2000,30  );   
+     }
+      
+  // test left side for wall hit    
+      if(ballVolX < 0 && ballX == LEFT_PADDLE_X+PADDLE_WIDTH-1 && ballY >= leftPaddleY && ballY <= leftPaddleY + PADDLE_HEIGHT) {
+        ballVolX = -ballVolX;
+        ballVolY += 2 * ((ballY - leftPaddleY) - (PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+            delay(100);
+  TV.tone(2000,30 );   
+      }
+      
+ // test right side for wall hit     
+      if(ballVolX > 0 && ballX == RIGHT_PADDLE_X && ballY >= rightPaddleY && ballY <= rightPaddleY + PADDLE_HEIGHT) {
+        ballVolX = -ballVolX;
+        ballVolY += 2 * ((ballY - rightPaddleY) - (PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+            delay(100);
+  TV.tone( 2000,30  );   
+      }
+ 
+      //limit vertical speed
+      if(ballVolY > MAX_Y_VELOCITY) ballVolY = MAX_Y_VELOCITY;
+      if(ballVolY < -MAX_Y_VELOCITY) ballVolY = -MAX_Y_VELOCITY;
+  
+ // Scoring
+      if(ballX <= 1) {
+        playerScored(RIGHT);
+     // sound 
+     delay(100);
+  TV.tone( 500,300 );   
+      }
+      if(ballX >= TV.hres() - 1) {
+        playerScored(LEFT);
+        // sound 
+        delay(100);
+ TV.tone(  500,300 );
+      }
+    }
+   
+   
+//    if(button1Status) Serial.println((int)ballVolX);
+ 
+    drawGameScreen();
+  }
+  
+  if(state == GAME_OVER) {
+    drawGameScreen();
+    TV.select_font(font8x8);
+    TV.print(29,25,"GAME");
+    TV.print(68,25,"OVER");
+    while(!button1Status) {
+      processInputs();
+      delay(50);
+    }
+    TV.select_font(font4x6); //reset the font
+    //reset the scores
+    leftPlayerScore = 0;
+    rightPlayerScore = 0;
+    state = IN_MENU;
+  }
+ 
+ 
+  TV.delay_frame(1);
+  if(++frame == 60) frame = 0; //increment and/or reset frame counter
 }
-
-
-
-
-
-
-
-
