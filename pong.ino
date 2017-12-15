@@ -35,6 +35,8 @@
 #define MAX_Y_VELOCITY 6
 //#define PLAY_TO 1
 int PLAY_TO = 100;
+int player1Sensor = 0;
+int player2Sensor = 0;
 
 #define LEFT 0
 #define RIGHT 1
@@ -62,24 +64,59 @@ int state = IN_MENU;
 int counter = 0;
 int iSpeed = 8;
 
-void processInputs() {
-  //wheelOnePosition = analogRead(WHEEL_ONE_PIN);
-//  wheelOnePosition = analogRead(A1) * 5 - 3635; //Photoresistor
-    wheelOnePosition = analogRead(A0) * 102 - 14800; //temp sensor
-
-  if ( wheelOnePosition < 0)
-    wheelOnePosition = 50;
-  if (wheelOnePosition > 1000)
-    wheelOnePosition = 1000;
-  //delay(50);
- // wheelTwoPosition = analogRead(WHEEL_TWO_PIN);
- 
-  
-  if (leftPaddleY <= ballY){
-    wheelTwoPosition += 15;
+void processInputs() {//0 potentiometer, 1 photoresistor, 2 temperature, 3 computer
+  if (player1Sensor == 0){//Player 1 has chosen potentiometer
+    wheelOnePosition = analogRead(A3);
   }
-  else{
-    wheelTwoPosition -= 15;
+  if (player2Sensor == 0){//Player 2 has chosen a potentiometer
+    wheelTwoPosition = analogRead(A0);
+  }
+
+  if (player1Sensor == 1){//Player 1 has chosen a photoresistor
+    wheelOnePosition = analogRead(A5) * 5 - 3635;
+  }
+  if (player2Sensor == 1){//Player 2 has chosen a photoresistor
+    wheelTwoPosition = analogRead(A2) * 5 - 3635;
+  }
+
+  if (player1Sensor == 2){//Player 1 has chosen a temperature sensor
+    wheelOnePosition = analogRead(A4) * 102 - 15360;
+  }
+  if (player2Sensor == 2){//Player 2 has chosen a temperature sensor
+    wheelTwoPosition = analogRead(A1) * 102 - 15360;
+  }
+
+  if (player1Sensor == 3){//Player 1 has chosen to be a computer
+    if (leftPaddleY <= ballY){
+      wheelOnePosition += 15;
+    }  
+    else{
+      wheelOnePosition -= 15;
+     }
+     //Next to if statements are if the paddle tries going off screen. It will be placed back on screen
+    if(wheelOnePosition < 0){
+      wheelOnePosition = 50;
+    }
+    if (wheelOnePosition > 1023){
+      wheelOnePosition = 1000;
+    }
+  }
+
+  if (player2Sensor == 3){//Player 2 has chosen to be a computer
+    if (rightPaddleY <= ballY){
+      wheelTwoPosition += 15;
+    }
+    else{
+      wheelTwoPosition -= 15;
+    }
+
+    //If paddle goes too high or low:
+    if (wheelTwoPosition < 0){
+      wheelTwoPosition = 50;
+    }
+    if (wheelTwoPosition > 1023){
+      wheelTwoPosition = 1000;
+    }
   }
 
   //delay(50);
@@ -219,7 +256,7 @@ void setSpeed()
   while (digitalRead(BUTTON_ONE_PIN) == LOW){
     if (digitalRead(BUTTON_TWO_PIN) == HIGH){
       iSpeed--;
-      delay(1000);
+      delay(300);
       Serial.println(iSpeed);
     }
   }
@@ -233,13 +270,39 @@ void setScore()
       PLAY_TO = PLAY_TO + 1;
       Serial.println(PLAY_TO);
     }
-    delay(1000);
+    delay(300);
   }
 }
 
-int count;
+setPlayer1Sensor()
+{
+  while (digitalRead(BUTTON_ONE_PIN) == LOW){
+    if (digitalRead(BUTTON_TWO_PIN) == HIGH){
+      if (player1Sensor == 3){
+        player1Sensor = 0;
+      }
+      else{
+        player1Sensor++;
+      }
+    }
+  }
+}
+
+setPlayer2Sensor()
+{
+  while (digitalRead(BUTTON_ONE_PIN) == LOW){
+    if (digitalRead(BUTTON_TWO_PIN) == HIGH){
+      if (player2Sensor == 3){
+        player2Sensor = 0;
+      }
+      else{
+        player2Sensor++;
+      }
+    }
+  }
+}
+
 void setup()  {
-    //Serial.begin(9600);
   x=0;
   y=0;
   TV.begin(_NTSC);       //for devices with only 1k sram(m168) use TV.begin(_NTSC,128,56)
@@ -247,22 +310,23 @@ void setup()  {
   ballX = TV.hres() / 2;
   ballY = TV.vres() / 2;
   Serial.begin(9600);
-  count = 0;
 //  pinMode(BUTTON_ONE_PIN, INPUT);      // sets the digital pin as output
 
+  setPlayer1Sensor();
+  setPlayer2Sensor();
   //Serial.println("Choose your game speed\n");
   setSpeed();
   delay(1000);
   //Serial.println("Choose the score you want to play to\n");
   setScore();
-  //delay(1000);
+  
 
   if (iSpeed <= 0){
     iSpeed = 1;
     Serial.print("New speed: ");
     Serial.println(iSpeed);
-    delay(10000);
   }
+  delay(1000);
 
 }
 
@@ -272,7 +336,7 @@ void loop() {
   
   processInputs();
 
-
+  Serial.println("Fart");
   
   if(state == IN_MENU) {
     Serial.println("F");
