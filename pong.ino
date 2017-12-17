@@ -181,20 +181,21 @@ void processInputs() {
 }
 
 
-//This code is the same as the code from the original project. The ddraw_line fuctions are fairly complicated. I do not take credit for this! 
+//This code is basically the same as the code from the original project. The ddraw_line fuctions are fairly complicated. I do not take credit for this! 
 //All I changed/added were the comments to make them easier to understand.
+//Edit: I also modified the code so that player 1 now controls the left paddle, and player 2 controls the right paddle
 void drawGameScreen() {
 
 
-  //These next few lines of code draw the right paddle
-  rightPaddleY = ((wheelOnePosition / 8) * (TV.vres() - paddleHeight)) / 128;
+  //These next few lines of code draw the left  paddle - player 1
+  leftPaddleY = ((wheelOnePosition / 8) * (TV.vres() - paddleHeight)) / 128;
   x = rightPaddleXcoord;
   for (int i = 0; i<paddleWidth; i++) {//Draws each vertical line for each pixel the paddle is wide
     TV.draw_line(x + i, rightPaddleY, x + i, rightPaddleY + paddleHeight, 1);
   }
 
-  //These lines draw the left paddle
-  leftPaddleY = ((wheelTwoPosition / 8) * (TV.vres() - paddleHeight)) / 128;
+  //These lines draw the right paddle - player 2
+  rightPaddleY = ((wheelTwoPosition / 8) * (TV.vres() - paddleHeight)) / 128;
   x = leftPaddleX;
   for (int i = 0; i<paddleWidth; i++) {//Draws each vertical line for each pixel the paddle is wide
     TV.draw_line(x + i, leftPaddleY, x + i, leftPaddleY + paddleHeight, 1);
@@ -314,7 +315,8 @@ void drawMenu() {
 
 
   TV.select_font(font4x6);//Smaller font for the actual game is used
-  state = modeDrawStationary;
+  //state = modeDrawStationary;
+  state = modeDrawMoving;
 }
 
 //I made this myself. It sets the speed of the ball, using the iSpeed variable.
