@@ -2,7 +2,7 @@
 My project for CS207, 2017 Fall term
 
 The project I have created is an enhanced Pong game on the Arduino. The original version uses two potentiometers to play a two player game of Pong.
-This project plays a game of Pong, by connecting an Arduin to an actual television. The television must have composite input which RCA cables can be plugged into. My version allows the users to play with photoresistors, temperature sensors, potentiometers, and even has a mode to play against a computer. 
+This project plays a game of Pong, by connecting an Arduino to an actual television. The television must have composite input which RCA cables can be plugged into. My version allows the users to play with photoresistors, temperature sensors, potentiometers, and even has a mode to play against a computer. 
 
 For the full build you will need:
 1x television with composite input
