@@ -120,7 +120,40 @@ int state = modeMenu;
 //Values from the sensors will range from 0 to 1023. The higher the value being read from the sensor, the lower the paddle moves.
 //So a value of 0 will have the paddle at the top of the screen, and a value of 1023 will move the paddle to the bottom of the screen.
 void processInputs() {
-  if (player1Sensor == 0) {//Player 1 has chosen potentiometer
+
+  if (player1Sensor == 3 && player2Sensor == 3){//Both players will be computers
+    if (leftPaddleY <= ballY) {//And they will both move at different speeds
+      wheelOnePosition += random(20); //Player 1
+    }
+    else {
+      wheelOnePosition -= random(20);
+    }
+    if (wheelOnePosition < 0) {
+      wheelOnePosition = 50;
+    }
+    if (wheelOnePosition > 1023) {
+      wheelOnePosition = 1000;
+    }
+
+    //Player2
+    if (rightPaddleY <= ballY) {
+      wheelTwoPosition += random(20);
+    }
+    else {
+      wheelTwoPosition -= random(20);
+    }
+
+    //If paddle goes too high or low:
+    if (wheelTwoPosition < 0) {
+      wheelTwoPosition = 50;
+    }
+    if (wheelTwoPosition > 1023) {
+      wheelTwoPosition = 1000;
+    }
+  }
+  
+  
+  else if (player1Sensor == 0) {//Player 1 has chosen potentiometer
     wheelOnePosition = analogRead(A3);
   }
   else if (player1Sensor == 1) {//Player 1 has chosen a photoresistor
