@@ -26,7 +26,8 @@ Next using the other half of the cable, connect the inside wiring to the 470 ohm
 
 The last part of the build requires to pushbuttons being connected. The buttons must be pull down, so that they read a high voltage when pushed. Connect one to pin 2, and the other to pin 3. The button connected to pin 2 will be referred to as the first button, and the button connected to pin 3 will be referred to as the second button.
 
-Once you have the build set up, download the code from my repository. 
+Once you have the build set up, download the code from my repository, found here:
+https://github.com/mrd5/CS207Project/blob/master/pong.ino
 Then, download the TVoutBeta1.zip from here: https://code.google.com/archive/p/arduino-tvout/downloads
 Extract the files into your Arduino libraries directory. 
 If this is not downloaded, the code will NOT work. 
